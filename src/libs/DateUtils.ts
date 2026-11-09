@@ -1156,7 +1156,13 @@ function getFormattedSplitDateRange(
  * Converts a date to a string in the format MMMM d, yyyy
  */
 const formatToReadableString = (date: string, dateFnsLocale: DateFnsLocale | undefined): string => {
+    if (!date) {
+        return '';
+    }
     const parsedDate = parse(date, 'yyyy-MM-dd', new Date());
+    if (!isValid(parsedDate)) {
+        return date;
+    }
     return format(parsedDate, 'MMMM d, yyyy', {locale: dateFnsLocale});
 };
 

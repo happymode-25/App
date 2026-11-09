@@ -1,4 +1,5 @@
 import type {SearchQueryJSON} from '@components/Search/types';
+import {isValid, parse} from 'date-fns';
 
 import type {SearchDateValues} from '@libs/SearchQueryUtils';
 import {
@@ -26,13 +27,25 @@ function parseDate(queryJSON: SearchQueryJSON): Pick<InsightsFilters, 'date'> | 
     const onValue = dateFilters.find(({operator}) => operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO)?.value.toString();
     if (onValue) {
         const on = normalizeDatePreset(onValue);
-        return {date: isSearchDatePreset(on) ? {preset: on} : {on}};
+        if (isSearchDatePreset(on)) {
+            return {date: {preset: on}};
+        }
+        const parsed = parse(on, 'yyyy-MM-dd', new Date());
+        if (isValid(parsed) && CONST.DATE.REGEX.DATE.test(on)) {
+            return {date: {on}};
+        }
+        return undefined;
     }
 
     const from = dateFilters.find(({operator}) => operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO)?.value.toString();
     const to = dateFilters.find(({operator}) => operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO)?.value.toString();
     if (from && to) {
-        return {date: {from, to}};
+        const parsedFrom = parse(from, 'yyyy-MM-dd', new Date());
+        const parsedTo = parse(to, 'yyyy-MM-dd', new Date());
+        if (isValid(parsedFrom) && isValid(parsedTo) && CONST.DATE.REGEX.DATE.test(from) && CONST.DATE.REGEX.DATE.test(to)) {
+            return {date: {from, to}};
+        }
+        return undefined;
     }
 
     return undefined;
