@@ -30,6 +30,7 @@ function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps)
 
     const startDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date), dateFnsLocale);
     const endDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date), dateFnsLocale);
+    const trainDate = DateUtils.formatToLongDateWithWeekday(new Date(reservation.start.date), dateFnsLocale);
     const trainRouteDescription = `${formatTransitLocationLabel(reservation.start)} ${translate('common.conjunctionTo')} ${formatTransitLocationLabel(reservation.end)}`;
     const trainDuration = DateUtils.getFormattedDurationBetweenDates(translate, new Date(reservation.start.date), new Date(reservation.end.date));
 
@@ -49,7 +50,7 @@ function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps)
             </MenuItemField>
             <MenuItemField
                 name={translate('common.date')}
-                value={startDate.date}
+                value={trainDate}
             />
 
             <MenuItem.Root>
