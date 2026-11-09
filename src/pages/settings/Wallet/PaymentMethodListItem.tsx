@@ -10,6 +10,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
+import type {ThreeDotsMenuHandle} from '@components/ThreeDotsMenu/types';
 
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -173,7 +174,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     const {translate} = useLocalize();
     const {cardPaddingHorizontal, cardPaddingLeft} = useLayoutSpacing();
 
-    const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean; onThreeDotsPress: () => void}>(null);
+    const threeDotsMenuRef = useRef<ThreeDotsMenuHandle & {onThreeDotsPress: () => void}>(null);
     const isInLockedState = isBusinessBankAccountLocked(item);
     const showThreeDotsMenu = item.shouldShowThreeDotsMenu !== false && !!threeDotsMenuItems && !isInLockedState;
     const isNeedingAction = isAccountNeedingAction(item);
@@ -317,6 +318,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     const actionAccessibilityLabel = connectionStatus?.actionText ? `${connectionStatus.actionText} ${item.title ?? ''}, ${item.description}` : undefined;
 
     return (
+        <View onLayout={() => threeDotsMenuRef.current?.updateMenuPosition?.()}>
         <OfflineWithFeedback
             onClose={item.canDismissError ? () => dismissError(item) : undefined}
             pendingAction={item.pendingAction}
@@ -399,6 +401,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 </View>
             )}
         </OfflineWithFeedback>
+        </View>
     );
 }
 

@@ -25,7 +25,7 @@ import KeyboardUtils from '@src/utils/keyboard';
 
 import type {ComponentRef} from 'react';
 
-import React, {useEffect, useImperativeHandle, useLayoutEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type ThreeDotsMenuProps from './types';
@@ -125,7 +125,7 @@ function ThreeDotsMenu({
         }
     };
 
-    const updateMenuPosition = () => {
+    const updateMenuPosition = useCallback(() => {
         if (!getMenuPosition || !isPopupMenuVisible) {
             return;
         }
@@ -133,7 +133,7 @@ function ThreeDotsMenu({
         getMenuPosition().then((value) => {
             setPosition(value);
         });
-    };
+    }, [getMenuPosition, isPopupMenuVisible]);
 
     useImperativeHandle(threeDotsMenuRef as React.RefObject<ThreeDotsMenuHandle & {onThreeDotsPress: () => void}> | undefined, () => ({
         isPopupMenuVisible,
@@ -150,7 +150,14 @@ function ThreeDotsMenu({
 
     useLayoutEffect(() => {
         updateMenuPosition();
-    }, [windowWidth, windowHeight, shouldSelfPosition, updateMenuPosition]);
+        if (!isPopupMenuVisible) {
+            return;
+        }
+        const rafId = requestAnimationFrame(() => {
+            updateMenuPosition();
+        });
+        return () => cancelAnimationFrame(rafId);
+    }, [windowWidth, windowHeight, shouldSelfPosition, updateMenuPosition, isPopupMenuVisible]);
 
     const getIconFill = () => {
         if (!shouldChangeFillOnOpen) {
