@@ -10,6 +10,7 @@ import TextInput from '@components/TextInput';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -17,6 +18,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getDisplayNameErrors} from '@libs/ValidationUtils';
+import {getMemberLoginByAccountID} from '@libs/WorkArrangementUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
@@ -39,11 +41,13 @@ function WorkspaceMemberDisplayNamePage({route}: WorkspaceMemberDisplayNamePageP
     const {translate, formatPhoneNumber} = useLocalize();
     const accountID = Number(route.params.accountID);
     const policyID = route.params.policyID;
-    const [memberPersonalDetails, memberPersonalDetailsResult] = usePersonalDetail(accountID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const memberLogin = memberPersonalDetails?.login;
+    const [memberPersonalDetails, memberPersonalDetailsResult] = usePersonalDetail(accountID);
+    const memberLogin = memberPersonalDetails?.login ?? getMemberLoginByAccountID(policy, accountID);
+    const memberPersonalDetailsByLogin = usePersonalDetailByLogin(memberLogin);
+    const details = memberPersonalDetails ?? memberPersonalDetailsByLogin;
     const isLoadingMemberPersonalDetails = isLoadingOnyxValue(memberPersonalDetailsResult);
-    const hasDisplayNameSet = !!memberPersonalDetails?.firstName || !!memberPersonalDetails?.lastName;
+    const hasDisplayNameSet = !!details?.firstName || !!details?.lastName;
     const isPolicyMember = !!memberLogin && !!policy?.employeeList?.[memberLogin];
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_MEMBER_DISPLAY_NAME.path);
 
@@ -86,10 +90,10 @@ function WorkspaceMemberDisplayNamePage({route}: WorkspaceMemberDisplayNamePageP
                                 updatePolicyMemberDisplayName(policyID, values.firstName.trim(), values.lastName.trim(), formatPhoneNumber, {
                                     accountID,
                                     email: memberLogin,
-                                    firstName: memberPersonalDetails?.firstName,
-                                    lastName: memberPersonalDetails?.lastName,
-                                    displayName: memberPersonalDetails?.displayName,
-                                    avatar: memberPersonalDetails?.avatar,
+                                    firstName: details?.firstName,
+                                    lastName: details?.lastName,
+                                    displayName: details?.displayName,
+                                    avatar: details?.avatar,
                                 });
                                 Navigation.goBack();
                             }}
